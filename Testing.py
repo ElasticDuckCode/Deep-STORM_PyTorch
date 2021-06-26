@@ -41,14 +41,16 @@ def test_model(datafile, weights_file, meanstd_file, savename, \
         Images_norm[i, ...] = project_01(Images[i, ...])
         Images_norm[i, ...] = normalize_im(Images_norm[i, ...], \
                 test_mean, test_std)
-    Images_norm = torch.from_numpy(Images_norm.reshape([K, 1, *Images.shape[1:]]))
+    Images_norm = Images_norm.reshape([K, 1, *Images.shape[1:]])
 
     # make prediction (and time it)
     st = time.time()
     model.eval()
-    predicted_density = torch.zeros_like(Images_norm)
+    predicted_density = np.zeros(Images_norm.shape, dtype=np.float32)
     for i in range(K):
-        predicted_density[i, ...] = model(Images_norm[i, ...].to(device))
+        Image_norm = torch.from_numpy(Images_norm[i, ...]).to(device)[np.newaxis]
+        predicted_density[i, ...] = model(Image_norm).detach().cpu().numpy()
+        Image_norm = Image_norm.cpu() # move back to cpu regardless
     et = time.time()
     print(et-st)
 

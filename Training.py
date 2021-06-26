@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 import h5py
@@ -11,7 +12,14 @@ from tqdm import tqdm
 
 from CNN_Model import project_01, normalize_im, DeepSTORM, l1l2loss
 
-device = ("cuda" if torch.cuda.is_available() else "cpu") 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+# initialize weights using orthogonal method seen in original tensorflow implementation
+def weight_init(m):
+    if isinstance(m, nn.Conv2d):
+        nn.init.orthogonal_(m.weight, gain=nn.init.calculate_gain("relu"))
+        #nn.init.zeros_(m.bias)
+    return
 
 class SimpleSTORMDataset(Dataset):
     def __init__(self, trainX, trainY, transform=None, target_transform=None):
@@ -36,11 +44,10 @@ def train_model(filename, weights_name, meanstd_name):
     heatmaps = 100.0 * np.array(matfile['heatmaps'])
 
     # split dataset into training and validation sets
-    trainX, testX, trainY, testY = train_test_split(patches, heatmaps, \
-            test_size=0.3,
-            random_state=42)
-    print(f'Number of Training Examples: {trainX.shape[0]}')
-    print(f'Number of Validation Examples: {testX.shape[0]}')
+    trainX, testX, trainY, testY = train_test_split(patches, heatmaps,\
+            test_size=0.3, random_state=42)
+    print(f"Number of Training Examples: {trainX.shape[0]}")
+    print(f"Number of Validation Examples: {testX.shape[0]}")
 
     # ensure all data is float32
     trainX = trainX.astype('float32')
@@ -98,10 +105,12 @@ def train_model(filename, weights_name, meanstd_name):
 
     # create Deep-STORM model
     model = DeepSTORM((psize, psize)).to(device)
+    model.apply(weight_init)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, \
             factor=0.1, patience=5, min_lr=0.00005)
     criterion = l1l2loss
+
 
     # begin training the model
     num_epochs = 100

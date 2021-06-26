@@ -2,8 +2,8 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 import h5py
-import scipy.io as sio
 import argparse
+from scipy.io import savemat
 from os.path import abspath
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset, DataLoader
@@ -80,6 +80,10 @@ def train_model(filename, weights_name, meanstd_name):
                 mean_val_test, std_val_test)
     testX_norm = testX_norm.reshape(testX.shape[0], 1, psize, psize)
 
+    # save mean and std to mat file
+    mdict = {"mean_test": mean_val_test, "std_test": std_val_test}
+    savemat(meanstd_name, mdict)
+
     # label reshaping
     trainY = trainY.reshape(trainY.shape[0], 1, psize, psize)
     testY = testY.reshape(testY.shape[0], 1, psize, psize)
@@ -142,6 +146,20 @@ def train_model(filename, weights_name, meanstd_name):
                     {valid_loss}) \t Saving The Model')
             min_valid_loss = valid_loss
             torch.save(model.state_dict(), weights_name)
+
+    print("Training Completed!")
+
+    # create plots of loss over each iteration
+    plt.figure()
+    plt.plot(train_loss_hist, label="training loss")
+    plt.plot(val_loss_hist, label="validation loss")
+    plt.legend()
+    plt.xlabel("Iteration")
+    plt.ylabel("Loss")
+    plt.title("Loss function progress during training")
+    plt.tight_layout()
+    plt.show()
+
     return
 
 

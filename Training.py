@@ -109,8 +109,8 @@ def train_model(filename, weights_name, meanstd_name):
     val_loss_hist = []
     min_val_loss = np.Inf
     for epoch in range(num_epochs):
-        loop1 = tqdm(train_loader, total=len(train_loader), leave=True)
-        loop2 = tqdm(test_loader, total=len(test_loader), leave=True)
+        loop1 = tqdm(train_loader, total=len(train_loader), leave=False)
+        loop2 = tqdm(test_loader, total=len(test_loader), leave=False)
 
         train_loss = 0
         model.train()
@@ -142,10 +142,10 @@ def train_model(filename, weights_name, meanstd_name):
 
         scheduler.step(val_loss)
 
-        if min_valid_loss > valid_loss:
-            print(f'Validation Loss Decreased({min_valid_loss}--->\
-                    {valid_loss}) \t Saving The Model')
-            min_valid_loss = valid_loss
+        if min_val_loss > val_loss:
+            print(f'Validation Loss Decreased({min_val_loss:.6f}--->\
+                    {val_loss:6f}) \t Saving The Model')
+            min_val_loss = val_loss
             torch.save(model.state_dict(), weights_name)
 
     print("Training Completed!")

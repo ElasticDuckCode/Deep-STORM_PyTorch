@@ -95,24 +95,55 @@ def train_model(filename, weights_name, meanstd_name):
     # create Deep-STORM model
     model = DeepSTORM((psize, psize))
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    loss_fn = l1l2loss
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, \
+            factor=0.1, patience=5, min_lr=0.00005)
+    criterion = l1l2loss
 
     # begin training the model
-    model.train()
     num_epochs = 100
+    train_loss_hist = []
+    val_loss_hist = []
+    min_val_loss = np.Inf
     for epoch in range(num_epochs):
-        loop = tqdm(train_loader, total=len(train_loader), leave=True)
-        for data, label in loop:
+        loop1 = tqdm(train_loader, total=len(train_loader), leave=True)
+        train_loss = 0
+        model.train()
+        for data, label in loop1:
             data.to(device)
+            label.to(device)
             spikes_pred = model(data)
-            loss = loss_fn(label, spikes_pred)
-
+            loss = criterion(label, spikes_pred)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-            loop.set_description(f"Epoch [{epoch}/{num_epochs}]")
-            loop.set_postfix(loss = loss.item())
+            train_loss = loss.item() * data.size(0)
+            train_loss_hist.append(train_loss)
+
+            loop1.set_description(f"Epoch [{epoch+1}/{num_epochs}] Training")
+            loop1.set_postfix(loss = loss.item())
+
+        loop2 = tqdm(test_loader, total=len(train_loader), leave=True)
+        val_loss = 0
+        model.eval()
+        for data, label in loop2:
+            data.to(device)
+            label.to(device)
+            spikes_pred = model(data)
+            loss = criterion(label, spikes_pred)
+            val_loss = loss.item() * data.size(0)
+            val_loss_hist.append(val_loss)
+
+            loop2.set_description(f"Epoch [{epoch+1}/{num_epochs}] Validation")
+            loop2.set_postfix(loss = loss.item())
+
+        scheduler.step(val_loss)
+
+        if min_valid_loss > valid_loss:
+            print(f'Validation Loss Decreased({min_valid_loss:.6f\
+            }--->{valid_loss:.6f}) \t Saving The Model')
+            min_valid_loss = valid_loss
+            torch.save(model.state_dict(), weights_name)
     return
 
 

@@ -5,7 +5,6 @@ Port of Deep-STORM from Tensorflow to PyTorch
 
 ## PyTorch Pre-Trained Files
 
-| --- | --- |
 | [Deep-STORM PyTorch Weights](https://drive.google.com/file/d/12LzHf2NC9vuhq3mYALGHyI7-glW0Nfoy/view?usp=sharing) | [Deep-STORM Mean and Standard Deviation](https://drive.google.com/file/d/1GDG8_-qbKdTpMltz03jzmH8FMJ7ZgD9L/view?usp=sharing) |
 | --- | --- |
 

@@ -27,7 +27,7 @@ def test_model(datafile, weights_file, meanstd_file, savename, \
     Images = Images_upsampled.astype('float32')
 
     # load DeepSTORM network
-    model = DeepSTORM((M, N))
+    model = DeepSTORM((M, N)).to(device)
     model.load_state_dict(torch.load(weights_file))
 
     # load mean and std
@@ -41,12 +41,14 @@ def test_model(datafile, weights_file, meanstd_file, savename, \
         Images_norm[i, ...] = project_01(Images[i, ...])
         Images_norm[i, ...] = normalize_im(Images_norm[i, ...], \
                 test_mean, test_std)
-    Images_norm = torch.from_numpy(Images_norm.reshape([K, 1, *Images.shape[1:]])).to(device)
+    Images_norm = torch.from_numpy(Images_norm.reshape([K, 1, *Images.shape[1:]]))
 
     # make prediction (and time it)
     st = time.time()
     model.eval()
-    predicted_density = model(Images_norm)
+    predicted_density = torch.zeros_like(Images_norm)
+    for i in range(K):
+        predicted_density[i, ...] = model(Images_norm[i, ...].to(device))
     et = time.time()
     print(et-st)
 

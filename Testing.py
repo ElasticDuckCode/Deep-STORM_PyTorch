@@ -10,6 +10,8 @@ from skimage import io
 from scipy.io import loadmat, savemat
 from os.path import abspath
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 def test_model(datafile, weights_file, meanstd_file, savename, \
         upsampling_factor=8, debug=0):
 
@@ -39,7 +41,7 @@ def test_model(datafile, weights_file, meanstd_file, savename, \
         Images_norm[i, ...] = project_01(Images[i, ...])
         Images_norm[i, ...] = normalize_im(Images_norm[i, ...], \
                 test_mean, test_std)
-    Images_norm = Images_norm.reshape([K, 1, *Images.shape[1:]])
+    Images_norm = torch.from_numpy(Images_norm.reshape([K, 1, *Images.shape[1:]])).to(device)
 
     # make prediction (and time it)
     st = time.time()

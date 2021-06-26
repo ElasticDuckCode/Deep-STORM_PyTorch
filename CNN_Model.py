@@ -6,6 +6,8 @@ import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 # project image min and max values to 0 and 1
 def project_01(im):
     im = np.squeeze(im)
@@ -36,8 +38,8 @@ def matlab_style_gauss2D(shape=(7,7), sigma=1):
     return h
 
 # prepare the filter used in Deep-STORM
-psf_heatmap = torch.tensor(matlab_style_gauss2D(shape=(7, 7), sigma=1))
-gfilter = torch.reshape(psf_heatmap, [1, 1, 7, 7])
+psf_heatmap = torch.tensor(matlab_style_gauss2D(shape=(7, 7), sigma=1)).to(device)
+gfilter = torch.reshape(psf_heatmap, [1, 1, 7, 7]).to(device)
 
 # Deep-STORM Loss function
 def l1l2loss(heatmap_true, spikes_pred):

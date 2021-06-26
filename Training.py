@@ -93,7 +93,7 @@ def train_model(filename, weights_name, meanstd_name):
             batch_size=16, shuffle=True)
 
     # create Deep-STORM model
-    model = DeepSTORM((psize, psize))
+    model = DeepSTORM((psize, psize)).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, \
             factor=0.1, patience=5, min_lr=0.00005)
@@ -109,8 +109,7 @@ def train_model(filename, weights_name, meanstd_name):
         train_loss = 0
         model.train()
         for data, label in loop1:
-            data.to(device)
-            label.to(device)
+            data, label = data.to(device), label.to(device)
             spikes_pred = model(data)
             loss = criterion(label, spikes_pred)
             optimizer.zero_grad()
@@ -127,8 +126,7 @@ def train_model(filename, weights_name, meanstd_name):
         val_loss = 0
         model.eval()
         for data, label in loop2:
-            data.to(device)
-            label.to(device)
+            data, label = data.to(device), label.to(device)
             spikes_pred = model(data)
             loss = criterion(label, spikes_pred)
             val_loss = loss.item() * data.size(0)
@@ -140,16 +138,14 @@ def train_model(filename, weights_name, meanstd_name):
         scheduler.step(val_loss)
 
         if min_valid_loss > valid_loss:
-            print(f'Validation Loss Decreased({min_valid_loss:.6f\
-            }--->{valid_loss:.6f}) \t Saving The Model')
+            print(f'Validation Loss Decreased({min_valid_loss}--->\
+                    {valid_loss}) \t Saving The Model')
             min_valid_loss = valid_loss
             torch.save(model.state_dict(), weights_name)
     return
 
 
 if __name__ == "__main__":
-
-    # parse the required input arguements
     parser = argparse.ArgumentParser()
     parser.add_argument('--filename', type=str, \
             help="path to generated training data m-file")

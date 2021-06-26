@@ -9,8 +9,12 @@ This project was implemented using Python 3.9.5 and PyTorch 1.8.0.
 I suggest you use anaconda/miniconda/miniforge to setup a python enviroment.
 
 ```sh
-conda create -n torch python=3.9.5
+conda create -n torch python=3.9.5 
 conda activate torch
 conda install pytorch=1.8.0 torchvision torchaudio -c pytorch  # modify based on GPU requirements
 ```
 
+The remaining dependencies can also be installed with conda
+```sh
+conda install -c conda-forge pip matplotlib scikit-image scikit-learn tqdm h5py scipy numpy
+```

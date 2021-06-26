@@ -91,10 +91,10 @@ def train_model(filename, weights_name, meanstd_name):
     # put data into PyTorch dataset
     train_dataset = SimpleSTORMDataset(trainX_norm, trainY)
     train_loader = DataLoader(train_dataset, \
-            batch_size=16, shuffle=True)
+            batch_size=16, shuffle=True, num_workers=4)
     test_dataset = SimpleSTORMDataset(testX_norm, testY)
     test_loader = DataLoader(test_dataset, \
-            batch_size=16, shuffle=True)
+            batch_size=16, shuffle=True, num_workers=4)
 
     # create Deep-STORM model
     model = DeepSTORM((psize, psize)).to(device)
@@ -110,6 +110,8 @@ def train_model(filename, weights_name, meanstd_name):
     min_val_loss = np.Inf
     for epoch in range(num_epochs):
         loop1 = tqdm(train_loader, total=len(train_loader), leave=True)
+        loop2 = tqdm(test_loader, total=len(test_loader), leave=True)
+
         train_loss = 0
         model.train()
         for data, label in loop1:
@@ -126,7 +128,6 @@ def train_model(filename, weights_name, meanstd_name):
             loop1.set_description(f"Epoch [{epoch+1}/{num_epochs}] Training")
             loop1.set_postfix(loss = loss.item())
 
-        loop2 = tqdm(test_loader, total=len(train_loader), leave=True)
         val_loss = 0
         model.eval()
         for data, label in loop2:

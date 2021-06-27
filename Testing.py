@@ -9,6 +9,7 @@ from CNN_Model import DeepSTORM, project_01, normalize_im
 from skimage import io
 from scipy.io import loadmat, savemat
 from os.path import abspath
+from tqdm import trange
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -47,7 +48,7 @@ def test_model(datafile, weights_file, meanstd_file, savename, \
     st = time.time()
     model.eval()
     predicted_density = np.zeros(Images_norm.shape, dtype=np.float32)
-    for i in range(K):
+    for i in trange(K):
         Image_norm = torch.from_numpy(Images_norm[i, ...]).to(device)[np.newaxis]
         predicted_density[i, ...] = model(Image_norm).detach().cpu().numpy()
         Image_norm = Image_norm.cpu() # move back to cpu regardless
